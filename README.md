@@ -12,18 +12,28 @@ JavaCADE depends on some external packages. Their jar files are expected to be f
 
 **Building**
 
-A compiled .jar file will be provided, so there's no need to compile & build the project unless you want to modify the source code.
+A compiled .jar file will (eventually) be provided, so there will be no need to compile & build the project unless you want to modify the source code. 
+
 The project can be built from the command line or in an IDE.
 
 To build at the command line, simply run `ant` from this directory. It will use the file `build.xml`.
 
+Notes for command line:
 
-Notes: 
-* I've configured this project using openjdk-17 as the language SDK, with language level 16. (I believe any JDK version 11 or higher would work.)
+* The project can be built using Java (JDK) versions 11 or higher, and it is configured to compile to bytecode version 11 (so can be run with `java` in that version or higher). 
 * Requires [ant](http://ant.apache.org/) version ≥1.8.0.  
 * Excludes unit tests by default. To include them, run this:
 `ant -Dskip.tests=false`.
 * Building and running the tests requires an additional dependency, the Junit 4 library. (My IDE resolved this by placing two files in the lib directory: `junit-4.13.1.jar` and `hamcrest-core-1.3.jar`).
-
+-->
 
 **Running**
+
+Using the files compiled to `out/production`:
+
+`java -classpath out/production/CADE:lib/commons-lang3-3.12.0.jar:lib/RCaller-4.0.2-jar-with-dependencies.jar:lib/weka-3-8-5/arpack_combined.jar:lib/weka-3-8-5/mtj.jar:lib/weka-3-8-5/core.jar:lib/weka-3-8-5/weka.jar -Xmx1g cade.PseudoAnomalyGo 1 0 true`
+* The final args, `1 0 true`, are what's passed to the program.
+* `cade.PseudoAnomalyGo` is the main class to call.
+* `-Xmx1g` increases the memory
+* The classpath includes 6 dependency jar files, plus the location of the compiled JavaCade project.
+* `java` (must be version 11 or higher)
