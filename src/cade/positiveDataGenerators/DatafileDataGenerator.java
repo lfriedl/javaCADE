@@ -13,10 +13,6 @@ public abstract class DatafileDataGenerator extends DataGenerator {
     protected int[] attributesToUse;
     protected String dataFile;
 
-//    public Instances getAllDataWithLabels() {
-//        return allData;
-//    }
-
     protected Instances allData;  // includes class label
     protected boolean deleteInstancesWithMissingValues;
 
@@ -29,7 +25,7 @@ public abstract class DatafileDataGenerator extends DataGenerator {
         System.out.println("Read data from " + dataFile);
 
         if (deleteInstancesWithMissingValues) {
-            System.err.println("Removing any instances with missing values from the data set");
+            System.out.println("Removing any instances with missing values from the data set");
             Instances noMissing = new Instances(allData, allData.numInstances()); // create empty copy
             for (int i = 0; i < allData.numInstances(); i++) {
                 if (! allData.instance(i).hasMissingValue()) {
@@ -109,10 +105,10 @@ public abstract class DatafileDataGenerator extends DataGenerator {
     	return false;
     }
 
+    // If attributesToUse is non-empty, deletes all except them and classIndex.
     protected void removeUnwantedAttributes(Instances someData, int[] attributesToUse) {
-
         if (attributesToUse.length != 0) {
-            //now remove unused attributes
+
             for (int i = someData.numAttributes() - 1; i >= 0; i--) {
                 //check if i's an attribute we're using
                 boolean contains = false;

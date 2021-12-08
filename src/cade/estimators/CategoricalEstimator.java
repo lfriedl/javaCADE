@@ -12,8 +12,7 @@ public class CategoricalEstimator extends cade.estimators.Estimator {
     protected int totalCount;
 
     // Smoothing is always "off" in this class; it's handled elsewhere.
-    public boolean useSmoothing = false;
-    public static double alpha = .05;  // shrug
+//    public boolean useSmoothing = false;
 
     public CategoricalEstimator(Instances instances, int attrNum) {
         buildEstimator(instances, attrNum);
@@ -41,18 +40,13 @@ public class CategoricalEstimator extends cade.estimators.Estimator {
         }
     }
 
-    /**
-     * Note: must be able to recognize if this value hasn't been seen before.
-     * @param attrValue
-     * @return
-     */
     @Override
     public double probabilityOf(double attrValue) {
-        if (useSmoothing) {
-            return getSmoothedProbability(attrValue);
-        } else {
+//        if (useSmoothing)
+//            return getSmoothedProbability(attrValue);
+//        else
             return getUnsmoothedProbability(attrValue);
-        }
+
     }
 
     protected double getUnsmoothedProbability(double attrValue) {
@@ -61,24 +55,6 @@ public class CategoricalEstimator extends cade.estimators.Estimator {
             return (countsForValue[(int)attrValue]) / (double) totalCount ;
         } else {
             return 0;
-        }
-    }
-
-    /* We need smoothing (i.e., never want to return P(x) = 0), and Laplace smoothing doesn't
-    * seem to do quite what we want, so how about this:
-    * P(unseen value) = alpha / (totalNumInstances + alpha)
-    * P(seen value) = timesThisValSeen / (totalNumInstances + alpha)
-    *
-    * This does add up to 1, plus allows for not knowing all the possible values in advance.
-    *
-    * Note: or, maybe we *don't* need smoothing, and we *should* return 0 sometimes. Hmm.
-    */
-    protected double getSmoothedProbability(double attrValue) {
-        if (attrValue < countsForValue.length && countsForValue[(int)attrValue] > 0
-                && Math.round(attrValue) == attrValue) {
-            return (countsForValue[(int)attrValue]) / (totalCount + alpha);
-        } else {
-            return (alpha / (totalCount + alpha));
         }
     }
 

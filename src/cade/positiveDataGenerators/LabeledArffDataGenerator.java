@@ -30,7 +30,7 @@ abstract public class LabeledArffDataGenerator extends DatafileDataGenerator {
         allData.setClassIndex(classAttr);
         allData.randomize(randomness);
 
-        allData = setUpClassLabel(allData);
+        allData = setUpClassLabel(allData); // (replaces any previous classIndex)
 
         removeUnwantedAttributes(allData, attributesToUse);
         
@@ -44,8 +44,9 @@ abstract public class LabeledArffDataGenerator extends DatafileDataGenerator {
 
     }
 
-    //using positiveClasses and negativeClasses, creates new class label with classes positive and
-    // negative as final attribute. Deletes instances if their class label isn't in either list.
+    // Replace old classIndex with one we construct here.
+    // Using variables positiveClasses and negativeClasses, creates new class label with classes "positive" and
+    // "negative", as final attribute. Deletes instances if their class label isn't in either list.
     protected Instances setUpClassLabel(Instances data) {
         // Add a new attribute to hold the class label
         FastVector classVals = new FastVector(2);

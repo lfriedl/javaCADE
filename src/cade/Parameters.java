@@ -55,7 +55,7 @@ public class Parameters {
     // --- Fields describing what a run looks like. ---
 
     // todo: turn this to false when running it for real
-    public static boolean runInRepeatableMode = true; // for debugging: use a fixed random seed
+    public static boolean runInRepeatableMode = false; // for debugging: use a fixed random seed
     public static int randomSeed = 1;
 
     // -- Fields that are commonly changed (via setup methods) --
@@ -72,6 +72,7 @@ public class Parameters {
     protected TrueDataGenerationType trueDataType = TrueDataGenerationType.REALDATA;  // almost always
     public UniformPNegRange uniformPNegRange = UniformPNegRange.POS_RANGE; // note: with synthetic data, must use UniformPNegRange.FIVE_STDDEVS_FROM_MEAN
 
+    // These variables are almost obsolete, because it's mostly the data generators that keep track of this.
     public int numTrainPositives = -1;  // means "all of them" (subdivided for cross-validation); but sometimes overriden in the constructor
     public int numPseudoNegs = -1;      // i.e., "match the number of positives"
     public int numTestPositives = -1;   // "all the test data you have"
@@ -92,7 +93,7 @@ public class Parameters {
     // Fields that are set and accessed internally
     public ParamsMultiRuns paramsMeta;
 
-    // Note: a given instance of Parameters corresponds to just one data set, so
+    // Note: a given instance of Parameters corresponds to a single data set, so
     // dataGenerator is created once and for all. In contrast, we vary the pseudoNegative types, making a new
     // ProbDensity whenever needed.
     protected DataGenerator dataGenerator; //reads data from file when created
@@ -144,6 +145,7 @@ public class Parameters {
         setUpVariablesDescribingOneRun(settingNumForRuns);
         dataGenerator = new NoLabelsArffDataGenerator(dataFile, attributesToUse, idAttributes, numTrainingInstances,
                 runInRepeatableMode ? new Random(randomSeed) : null, skipInstancesWithMissingVals);
+        numTrainPositives = numTrainingInstances;
     }
 
 
@@ -161,7 +163,6 @@ public class Parameters {
             countZeroes = true;     // only affects what's printed out
         }
         if (settingNum == 20) {  // KEEP. Used in runCrossValWithLabeledData()
-            // post-refactoring: what is still needed?
             numTrainPositives = 10000; // i.e., all of them (will be subdivided during cross-validation)
 
             smoothToRemove1sAnd0s = true;
@@ -169,20 +170,17 @@ public class Parameters {
 
         }
         if (settingNum == 19) {  // KEEP. Used in runUnlabeledWithCommandLineArgs()
-            // unlabeled data -- updated to use smoothing and print out zeroes info
 
-            // Data generator sets the equivalent of numTrainPositives in its constructor, and
-            // we have hard-coded elsewhere to grab "an equal number of pseudoNegs" and then "all the test data you have".
-            numTrainPositives = -1;   // I.e., use what we specify when we set up the data generator
-            numPseudoNegs = -1;  // Code for "whatever the positives were"
+            runUnsupervisedMode = true;     // flag only affects a statement printed below
+
+            // Constructor sets numTrainPositives
+//            numPseudoNegs = -1;  // stands for "whatever the positives were"
 
             smoothToRemove1sAnd0s = true;
-//            skipInstancesWithMissingVals = true;
             countZeroes = true;
         }
         if (settingNum == 18) {  // KEEP. Used in BayesNetTest.
-            //Most current HempstalkCorrection. New thing: remove instances with missing values
-            //can't change - used in a test!!
+            //New thing: remove instances with missing values
             smoothToRemove1sAnd0s = true;
             skipInstancesWithMissingVals = true;
 
@@ -200,7 +198,6 @@ public class Parameters {
             smoothToRemove1sAnd0s = true;
         }
         if (settingNum == 13) {  // KEEP. Used in NoClassifierTest.
-            // most current Hempstalk setting.
             smoothToRemove1sAnd0s = false;
         } else if (settingNum == 9) {  // KEEP. Used throughout HempstalkTest.java,
             // also UniformPseudoNegativeGeneratorTest and ArffDataPNegGeneratorTest.
@@ -226,7 +223,7 @@ public class Parameters {
 
 
         // Adding these to Parameters so that we only need run 1 R process (much faster).
-        rCaller = RCaller.create();
+        rCaller = RCaller.create();   // Path to R and Rscript is automatically detected here; could also be specified with an RCallerOptions object.
         rCode = RCode.create();
         rCaller.setRCode(rCode);
 
@@ -254,11 +251,12 @@ public class Parameters {
 
     }
 
-    // pNeg density estimator. In initial implementation, all three methods below were identical,
-    // and they returned a brand new, initialized object.
-    // However, calling any of these may be expensive; depending on the class, it may *learn* an estimator (fit it to
-    // the training data). So, once you've created it, store it for later use.
     // Creates and initializes a PseudoNegativeGenerator from the current training data
+    // The three methods below are almost identical. However:
+    //      -For some classes, initialization is expensive, because it learns an estimator (fit to
+    // the training data). So, once you've created it, store it for later use.
+    //      -(uncommon) Parameters allows the probability estimator to be a different type than the pNeg generator,
+    //      which adds some complexity to the code.
     public GenerativeProbDensity getPseudoNegativeGenerator() {
         this.pNegGenerator = getNewProbDensity(pseudoNegType);
         if (runInRepeatableMode) {
@@ -276,7 +274,7 @@ public class Parameters {
             return getNewProbDensity(probDensityType);
     }
 
-    // The class to create depends on the TrueDataGenerationType and the PseudoNegGeneration/ProbDensity Type
+    // The class to create depends on the PseudoNegGeneration/ProbDensity Type
     private GenerativeProbDensity getNewProbDensity(PseudoNegGenerationType pDensType) {
         if (pDensType == PseudoNegGenerationType.MIXTURE) {
             return new MixurePNegGenerator(this, mixtureFractionUniform);

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="cade" default="all">
-  
-  
+
   <!-- Change the following property if tests compilation is needed -->
   <property name="skip.tests" value="true"/>
 
@@ -149,6 +148,7 @@
   <target name="compile.module.cade" depends="compile.module.cade.production,compile.module.cade.tests" description="Compile module CADE"/>
   
   <target name="compile.module.cade.production" description="Compile module CADE; production classes">
+	<echo>Compiling with Java version ${java.version}, JDK located at ${java.home}</echo>
     <mkdir dir="${cade.output.dir}"/>
     <javac destdir="${cade.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
       <compilerarg line="${compiler.args.cade}"/>

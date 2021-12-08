@@ -15,16 +15,14 @@ import weka.core.Instances;
  */
 public class NoLabelsArffDataGenerator extends DatafileDataGenerator {
 
-    public int[] idAttributes;//indexed from 1
-    public String[][] idAttrValues;
-    protected Attribute[] savedIDAttrs;
-
+    public int[] idAttributes;  //indexed from 1
+    public Instances savedIDAttrs;
 
     public NoLabelsArffDataGenerator(String dataFile, int[] attributesToUse, int[] idAttributes,
                                      int numTrainPositives, Random rng, boolean ignoreInstancesWithMissingValues) throws IOException {
         this.dataFile = dataFile;
-        this.attributesToUse = attributesToUse;
-        this.idAttributes = idAttributes;
+        this.attributesToUse = attributesToUse; // may have length 0, meaning "use all except IDattrs"
+        this.idAttributes = idAttributes;   // may be [-1], meaning "there are none"
         this.numTrainingPositives = numTrainPositives;
 
         if (rng != null)
@@ -42,37 +40,38 @@ public class NoLabelsArffDataGenerator extends DatafileDataGenerator {
         if (numTrainingPositives == -1)
         	numTrainingPositives = allData.numInstances();
 
-        if (idAttributes[0] != -1)
-        	storeIDsForLater();
-
-        // Make the attributesToUse array be explicit, because even if it was passed in empty, we want the id attributes to go away
-        if (idAttributes[0] != -1)
-        	buildAttrsToUse();
-        removeUnwantedAttributes(allData, attributesToUse);
-
-        // Do this after removing ID attrs, so that we can ignore unwanted class attrs by treating them as IDs
-        setUpClassLabel(allData);
+        // Create new class label.
+        // (If data already contained a class label, include it among idAttributes in order not to use it as a feature.)
+        setUpClassLabel(allData);       // makes them all "positive"
         percentPositive = 100;
+
+        if (idAttributes[0] != -1) {
+            storeIDsForLater();
+            buildAttrsToUse();  // constructs the attributesToUse array if it was passed in empty
+        }
+        removeUnwantedAttributes(allData, attributesToUse);
 
         //numAttributes doesn't include class label
         numAttributes = allData.numAttributes() - 1;
 
+        System.out.println("Using " + numAttributes + " attributes");
         System.out.println("Preparing training sample");
-	
-	// old: calculates properties only from training sample	
-        //trainingSample = getEnoughInstances(allData, numTrainingPositives);
-        //calculatePropertiesFromData(); // computes statistics of this.trainingSample
-// todo: double check whether/why this is really ok
-	// new: calculate properties (data ranges) from entire data set, even if we use only a subset for training
-        trainingSample = allData;
-        int storeNumTrainingPositives = numTrainingPositives; // save it, because calculatePropertiesFromData() writes to this.numTrainingPositives
+
+        // When running in unsupervised mode, we calculate data ranges using entire data set (even if we use only a
+        // subset for training).
+        // (Reasoning is: in this setting we really do know the testing instances in advance, so it's ok to use that info.
+        // In contrast, in supervised mode we calculate them based only on the training set, because (for example) we
+        // can't assume the negative class would be rare.)
+
+        // (code for this is a bit kludgy.)
+        trainingSample = allData; // trainingSample is what calculatePropertiesFromData() runs on.
+        int storeNumTrainingPositives = numTrainingPositives; // saved because calculatePropertiesFromData() will clobber it
         calculatePropertiesFromData(); // computes statistics of this.trainingSample
         // restore variables
         numTrainingPositives = storeNumTrainingPositives;
         trainingSample = getEnoughInstances(allData, numTrainingPositives);
 
         System.out.println("Training sample contains " + trainingSample.numInstances() + " instances");
-
 
     }
 
@@ -87,12 +86,12 @@ public class NoLabelsArffDataGenerator extends DatafileDataGenerator {
         int indexInNewAttrsToUse = 0;
         attributesToUse = new int[allData.numAttributes() - idAttributes.length];
         for (int attrNum1Based = 1; attrNum1Based <= allData.numAttributes(); attrNum1Based++) {
-            boolean isClassAttr = false;
+            boolean isIDAttr = false;
             for (int idAttrNum : idAttributes) {
                 if (idAttrNum == attrNum1Based)
-                    isClassAttr = true;
+                    isIDAttr = true;
             }
-            if (!isClassAttr) {
+            if (!isIDAttr) {
                 attributesToUse[indexInNewAttrsToUse] = attrNum1Based;
                 indexInNewAttrsToUse++;
             }
@@ -100,29 +99,15 @@ public class NoLabelsArffDataGenerator extends DatafileDataGenerator {
     }
 
     private void storeIDsForLater() {
-        idAttrValues = new String[idAttributes.length][allData.numInstances()];
 
-        int idIndex = 0;  // in idAttrValues
-
-        for (int attr1Based: idAttributes) {  // attr is still 1-based
-            int attr = attr1Based - 1;
-            if (!allData.attribute(attr).isString() && !allData.attribute(attr).isNominal()) {
-                for (int inst = 0; inst < allData.numInstances(); inst++)
-                    idAttrValues[idIndex][inst] = "" + allData.instance(inst).value(attr);
-            }
-            else {
-                for (int inst = 0; inst < allData.numInstances(); inst++)
-                    idAttrValues[idIndex][inst] = allData.attribute(attr).value((int) allData.instance(inst).value(attr));
-            }
-            idIndex++;
+        // save them for later in a new Instances object
+        savedIDAttrs = new Instances(allData);    // makes a copy
+        removeUnwantedAttributes(savedIDAttrs, idAttributes);   // removes all but the idAttrs and classIndex
+        if (savedIDAttrs.classIndex() >= 0) {
+            int classIndexToRm = savedIDAttrs.classIndex();
+            savedIDAttrs.setClassIndex(-1); // unset class index so that weka lets us remove this attr
+            savedIDAttrs.deleteAttributeAt(classIndexToRm);
         }
-
-        // possibly a better way to save these for later:
-        savedIDAttrs = new Attribute[idAttributes.length];
-        for (int i = 0; i < idAttributes.length; i++) {
-            savedIDAttrs[i] = (Attribute) allData.attribute(idAttributes[i]-1).copy();   // idAttributes is 1-based
-        }
-        // (then we can just paste them back in, later)
 
     }
 
@@ -155,13 +140,14 @@ public class NoLabelsArffDataGenerator extends DatafileDataGenerator {
         return getEnoughInstances(allData, numInstances);
     }
 
+    // These aren't meaningful for unlabeled data.
     @Override
-    public Instances generateTrainingNegatives(int numInstances) {
+    public Instances generateTestingPositives(int numInstances) {
         return null;
     }
 
     @Override
-    public Instances generateTestingPositives(int numInstances) {
+    public Instances generateTrainingNegatives(int numInstances) {
         return null;
     }
 

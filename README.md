@@ -20,7 +20,7 @@ To build at the command line, simply run `ant` from this directory. It will use 
 
 Notes for command line:
 
-* The project can be built using Java (JDK) versions 11 or higher, and it is configured to compile to bytecode version 11 (so can be run with `java` in that version or higher). 
+* The project can be built using Java (JDK) versions 11 or higher, and it is configured to compile to bytecode version 11 (so can be run with `java` in that version or higher). To make `ant` use a specific JDK, set it in the environment variable JAVA_HOME.
 * Requires [ant](http://ant.apache.org/) version ≥1.8.0.  
 * Excludes unit tests by default. To include them, run this:
 `ant -Dskip.tests=false`.

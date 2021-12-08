@@ -16,7 +16,7 @@ public class UCIExperiments {
 	 * args[3] (optional): directory to store the output in (avg-var lines will be saved to a file)
 	 */
 
-	public static void runUCIDataCrossValFromCommandLine(String[] args) {
+	public static void runSupervisedFromCommandLine(String[] args) {
 		if (args.length >= 4)
 			System.out.println("Command line args: " + args[0] + " " + args[1] + " " + args[2] + " " + args[3]);
 		else
@@ -100,7 +100,7 @@ public class UCIExperiments {
 	 * args[1]: Which class is the outlier class. Any of 2,3,5,6,7 for shuttle; for Vegas & coil, will be ignored, so use 0.
 	 * args[2] (optional): directory to store the output in (avg-var lines will be saved to a file)
 	 */
-	public static void runUCIDataUnsupFromCommandLine(String[] args) {
+	public static void runLabeledUnsupFromCommandLine(String[] args) {
 		if (args.length >= 3)
 			System.out.println("Command line args: " + args[0] + " " + args[1] + " " + args[2]);
 		else

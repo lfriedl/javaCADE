@@ -11,11 +11,12 @@ import weka.core.Instances;
 
 /**
  * Class for unsupervised framework, in which we're given an unlabeled data set and need to identify the outliers
- * within it. (Data file does have labels, but algorithms don't use them...
+ * within it. (Data file does have labels, but CADE itself doesn't use them...
  * **Except possibly to control the amount of "contamination" in the training data.)
  *
- * test data: We'd like to always make predictions on every instance in the data set. However, if the "outlier" class
- *  is too common, we might downsample it here.
+ * test data: We'd like to always make predictions on every instance in the data set.
+ * **However, if the "outlier" class is too common, we might downsample it here.
+ *
  * training data: a sample (of specified size) from the data file. (But actually, from the test data set, since this
  *  has adjusted the number of negatives.) A flag tells us whether to allow true negs in this set.
  *
@@ -53,16 +54,18 @@ public class UnsupervisedArffDataGenerator extends LabeledArffDataGenerator {
     }
 
     public void initialize() throws IOException {
-        super.initialize();
-        createPosNegSets();
-        prepareForNextRun();
-	    System.out.println("setting trainingSample");
-        trainingSample = testingData; //this specifies which data to use when calculating data ranges
+        super.initialize();     // sets up class label and attributes to use
+        createPosNegSets();     // sets up positive and negative data
+        prepareForNextRun();    // constructs training and testing data
+
+        // Calculate data ranges from *testing* data. (code is a bit kludgy.)
+//	    System.out.println("setting trainingSample");
+        trainingSample = testingData; // trainingSample is what calculatePropertiesFromData() runs on.
         calculatePropertiesFromData();
         numTrainingPositives = numTrainingInstances;    // restore numTrainPositives, because calculatePropertiesFromData() wrote to it
     }
 
-
+    // Constructs variables positiveData and negativeData once and for all. Initializes other Instances variables, leaving them empty.
     private void createPosNegSets() {
         //get the attributes from the data
         FastVector attributes = new FastVector(numAttributes + 1);
@@ -95,6 +98,7 @@ public class UnsupervisedArffDataGenerator extends LabeledArffDataGenerator {
         }
     }
 
+    // Constructs variables trainingData, testPositives, testNegatives, testingData. A new random sample every time.
     public void prepareForNextRun() {
         positiveData.randomize(randomness);
         negativeData.randomize(randomness);
