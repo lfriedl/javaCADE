@@ -210,18 +210,16 @@
   
   <target name="artifact.cade:jar" depends="init.artifacts, compile.module.cade" description="Build &#39;CADE:jar&#39; artifact">
     <mkdir dir="${artifact.output.cade:jar}"/>
-    <jar destfile="${temp.jar.path.CADE.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
-      <zipfileset file="${basedir}/src/META-INF/MANIFEST.MF" prefix="META-INF"/>
-      <zipfileset dir="${cade.output.dir}"/>
-    </jar>
+    <jar manifest="${basedir}/src/META-INF/MANIFEST.MF" basedir="${cade.output.dir}" destfile="${temp.jar.path.CADE.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain" />
     <copy file="${temp.jar.path.CADE.jar}" tofile="${artifact.output.cade:jar}/CADE.jar"/>
-<!--
     <copy file="${basedir}/../../../../lib/RCaller-4.0.2-jar-with-dependencies.jar" tofile="${artifact.output.cade:jar}/RCaller-4.0.2-jar-with-dependencies.jar"/>
     <copy file="${basedir}/../../../../lib/weka-3-8-5/weka.jar" tofile="${artifact.output.cade:jar}/weka.jar"/>
     <copy file="${basedir}/../../../../lib/weka-3-8-5/arpack_combined.jar" tofile="${artifact.output.cade:jar}/arpack_combined.jar"/>
     <copy file="${basedir}/../../../../lib/weka-3-8-5/core.jar" tofile="${artifact.output.cade:jar}/core.jar"/>
     <copy file="${basedir}/../../../../lib/weka-3-8-5/mtj.jar" tofile="${artifact.output.cade:jar}/mtj.jar"/>
--->
+<!--		Not strictly necessary, since there's no way for the user to call LOF without recompiling anyway.
+    <copy file="${librarydir}/localOutlierFactor.jar" tofile="${artifact.output.cade:jar}/localOutlierFactor.jar"/>
+!-->
   </target>
   
   <target name="build.all.artifacts" depends="artifact.cade:jar" description="Build all artifacts">
