@@ -14,7 +14,9 @@ import weka.core.Instance;
 import weka.core.Instances;
 import cade.estimators.Estimator;
 
-// This class can't quite fit in the usual hierarchy, using Estimators (alas), because the Estimator class is only
+//todo: automatically delete the temp files
+
+// This class can't quite fit in the usual hierarchy using Estimators (alas), because the Estimator class is only
 // built for a single attribute at a time.
 public class BayesNetProbDensity extends ProbDensity{
 	File numericTrainingFile;
@@ -111,8 +113,6 @@ public class BayesNetProbDensity extends ProbDensity{
 					writer.write(",");
 				writer.write("" + inst.value(attrIndex));
 				somethingWritten = true;
-				hasFactor = true;
-
 			}
 			writer.write("\n");
 		}
@@ -291,16 +291,12 @@ public class BayesNetProbDensity extends ProbDensity{
 	}
 
 	private double[] getPredsFromBayesNet(Instances testInstances) throws IOException{
-//    	System.out.println("Learning bayes net!!");
-    	//Write positives to a csv file
-	    
+
+    	//Write test data to csv files
 	    File numericTestingFile = File.createTempFile("numericTesting", ".csv");
 	    File factorTestingFile = File.createTempFile("factorTesting", ".csv");
     	 
-    	 //Write test numeric data to a csv file
 		writeAttrsToFile(testInstances, numericTestingFile, numericAttrs);
-    	 
-     	 //Write test factor data to a csv file
 		writeAttrsToFile(testInstances, factorTestingFile, factorAttrs);
 
 		RCaller caller = Parameters.rCaller;
