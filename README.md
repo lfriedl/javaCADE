@@ -6,17 +6,18 @@ There's a (rarely seen, but useful) [supplementary material](https://lfriedl.git
 
 ###What is it?
 
-Briefly, CADE is a technique to estimate the probability density function of a data set. It's useful for anomaly detection.
+Briefly, CADE is a technique to estimate the probability density function of a data set. This is a useful way of doing anomaly detection (low values = anomalies).
 
-We didn't invent it (it's described in the textbook [ESL](https://hastie.su.domains/ElemStatLearn)), but we tried to draw attention to how robustly such a "simple" method works, especially for high-dimensional data.
+We didn't invent it (it's described in the textbook [ESL](https://hastie.su.domains/ElemStatLearn)), but we tried to draw attention to how robustly such a "simple" method works, especially for high-dimensional data (e.g., >10-20 attributes).
 
 The intuition behind the method is somewhat similar to that behind [GANs](https://en.wikipedia.org/wiki/Generative_adversarial_network) (which came out later). First 
 you make an initial (naive) approximation of the data. Then you train a classifier to distinguish between the true data and your approximation. 
 You use the classifier's predictions to update the initial approximation (here, via Bayes' rule). With CADE, you do this update just once and stop.
 
 Part of the "simplicity" of CADE is that it relies on standard, well-studied tools. 
-We found good performance using (e.g.) Random Forest as a classifier, combined with, as a density estimator, one that treats each attribute as independent, 
-using a 1-d kernel density estimator in each dimension.
+We found good performance using (for example) a classifier of Random Forest, combined with 
+a density estimator that learns a separate 1-d kernel density estimator for each attribute and 
+combines them as if the attributes were independent.
 
 ###Ugh, bug in LOF
 
@@ -24,14 +25,15 @@ Not our fault! However...
 
 Weka's implementation of Local Outlier Factor (LOF) had a few bugs. We used this as a competitor method.
 
-_(Note: we had noticed and fixed some of those bugs at the time.)_
+_(Note: we did notice and fix some of those bugs at the time.)_
 
 Running today's corrected version (in 2021, while preparing this package for release), it looks as though the results with LOF itself are unchanged.
 
-However, running Bagged LOF (using the same wrapper code as before) now gives _better_ results than before.
+However, running Bagged LOF (using the same wrapper code as before) now gives _better_ results than before. 
+In other words, in the paper, the performance of Bagged LOF was artificially low. 
 
 This means all the paper's comparisons of CADE to Bagged LOF need to be rerun/revisited. 
-(Alas, no good deed, such as releasing the code from an old project, goes unpunished.)
+(Alas, no good deed, such as releasing potentially useful code from an old project, goes unpunished.)
 
 ##Code and Usage
 
@@ -57,7 +59,7 @@ There are a lot of source files, for two reasons:
 In cleaning up the code for release, I prioritized:
 1. Having a useful default behavior at the command line. (It takes the input data and appends a column of scores.)
 2. Making sure the main cross-validated experiments still replicate.
-3. Releasing most of the other code that we relied on. (Caveat: some functionality may have been broken during refactoring.)
+3. Releasing most of the other code that we relied upon. (Caveat: some functionality may have been broken during refactoring.)
 
 ##Dependencies
 
@@ -67,10 +69,10 @@ JavaCADE depends on some external packages. It expects to find their jar files i
     * Obtain the file `weka.jar`, either by [downloading this zip bundle](https://sourceforge.net/projects/weka/files/weka-3-8/3.8.5/weka-3-8-5.zip/) or by following your system's [installation instructions](https://waikato.github.io/weka-wiki/downloading_weka/) for version 3.8.
       Then, to avoid an [error loading weka](https://stackoverflow.com/questions/42178995/weka-linear-regression-classnotfoundexception),
       go to the directory where that jar is located and extract 3 files from it by running this command: 
-      `jar xf weka.jar arpack_combined.jar core.jar mtj.jar`. 
-      Finally, put all 4 jar files into the classpath (`ant` expects them in the subdirectory `lib/weka-3-8-5/`).
-    * (Optional! Only needed if using LocalOutlierFactor.) One of Weka's user-contributed packages, [localOutlierFactor v.1.4.0](https://weka.sourceforge.io/packageMetaData/localOutlierFactor/1.0.4.html) (must be exactly that version). Download the bundle from that link, then put the resulting `localOutlierFactor.jar` into the classpath.   
-* [RCaller](https://github.com/jbytecode/rcaller) version ≥4.0.0, which lets Java execute scripts in the R language. It (plus its dependencies) can be obtained by downloading [this jar file](https://github.com/jbytecode/rcaller/releases/download/RCaller-4.0.2/RCaller-4.0.2-jar-with-dependencies.jar) or by using Maven (ID: `com.github.jbytecode`). (JavaCADE calls R for most of the probability density estimates, apart from UNIFORM--that is, for MARGINAL_KDE, BAYESNET, and GAUSSIAN.)
+      `jar xf weka.jar arpack_combined.jar core.jar mtj.jar`.
+    * Finally, put all 4 jar files into the classpath. Put them into the subdirectory `lib/weka-3-8-5/` to make all the commands below work.
+    * One of Weka's user-contributed packages, [localOutlierFactor v.1.4.0](https://weka.sourceforge.io/packageMetaData/localOutlierFactor/1.0.4.html). (Must be exactly that version. Earlier versions had bugs, and later versions changed the interface.) Download the bundle from that link, then put the resulting `localOutlierFactor.jar` into the classpath.   
+* [RCaller](https://github.com/jbytecode/rcaller) version ≥4.0.0, which lets Java execute scripts in the R language. It (plus its dependencies) can be obtained by downloading [this jar file](https://github.com/jbytecode/rcaller/releases/download/RCaller-4.0.2/RCaller-4.0.2-jar-with-dependencies.jar), or alternatively, by using Maven (ID: `com.github.jbytecode`). (JavaCADE calls R for most of the probability density estimates, apart from UNIFORM--that is, for MARGINAL_KDE, BAYESNET, and GAUSSIAN.)
 
 
 * For RCaller to work, you must also have [R installed](https://www.r-project.org/). I am using version 3.6.3.  
@@ -92,7 +94,7 @@ To build at the command line, simply run `ant` from this directory. It will use 
 
 Notes for command line:
 
-* The project can be built using Java (JDK) versions 11 or higher. It is configured to compile into bytecode version 11. (This means it can be run with `java` in that version or higher.) 
+* The project can be built (`javac`) using Java (JDK) versions 11 or higher. It is configured to compile into bytecode version 11. (This means it can be run with `java` in that version or higher.) 
 To make `ant` use a specific JDK, set it in the environment variable JAVA_HOME.
 * Requires [ant](http://ant.apache.org/) version ≥1.8.0.  
 * Unit tests are not (currently) included in git. If/when they are added:
