@@ -1,17 +1,17 @@
-##CADE
+## CADE
 
 This is the code base used for the paper "[Classifier-Adjusted Density Estimation for Anomaly Detection and One-Class Classification](http://dx.doi.org/10.1137/1.9781611973440.67)." (By Lisa Friedland, Amanda Gentzel, and David Jensen. In <i>Proceedings of the 2014 SIAM International Conference on Data Mining (SDM)</i>, pp. 578&ndash;586.)
 
 There's a (rarely seen, but useful) [supplementary material](https://lfriedl.github.io/pubs/SDM2014-supp.pdf) document that discusses some of the implementation details. 
 
-###What is it?
+### What is it?
 
 Briefly, CADE is a technique to estimate the probability density function of a data set. This is a useful way of doing anomaly detection (low values = anomalies).
 
-We didn't invent it (it's described in the textbook [ESL](https://hastie.su.domains/ElemStatLearn)), but we tried to draw attention to how robustly such a "simple" method works, especially for high-dimensional data (e.g., >10-20 attributes).
+We didn't invent it (it's described in a [classic textbook](https://hastie.su.domains/ElemStatLearn)), but we tried to draw attention to how robustly such a "simple" method works, especially for high-dimensional data (e.g., >10-20 attributes).
 
 The intuition behind the method is somewhat similar to that behind [GANs](https://en.wikipedia.org/wiki/Generative_adversarial_network) (which came out later). First 
-you make an initial (naive) approximation of the data. Then you train a classifier to distinguish between the true data and your approximation. 
+you make an initial (naive) approximation of the data. Then you train a classifier to distinguish between the true data and (samples generated from) your approximation. 
 You use the classifier's predictions to update the initial approximation (here, via Bayes' rule). With CADE, you do this update just once and stop.
 
 Part of the "simplicity" of CADE is that it relies on standard, well-studied tools. 
@@ -19,7 +19,7 @@ We found good performance using (for example) a classifier of Random Forest, com
 a density estimator that learns a separate 1-d kernel density estimator for each attribute and 
 combines them as if the attributes were independent.
 
-###Ugh, bug in LOF
+### Ugh, bug in LOF
 
 Not our fault! However... 
 
@@ -35,11 +35,11 @@ In other words, in the paper, the performance of Bagged LOF was artificially low
 This means all the paper's comparisons of CADE to Bagged LOF need to be rerun/revisited. 
 (Alas, no good deed, such as releasing potentially useful code from an old project, goes unpunished.)
 
-##Code and Usage
+## Code and Usage
 
-###Basic inputs and outputs
+### Basic inputs and outputs
 
-###Code base
+### Code base
 
 The heart of CADE is found in the method `runClassifierAndPrintPredictions()` inside the main driver file, `PseudoAnomalyGo.java`.
 
@@ -61,7 +61,7 @@ In cleaning up the code for release, I prioritized:
 2. Making sure the main cross-validated experiments still replicate.
 3. Releasing most of the other code that we relied upon. (Caveat: some functionality may have been broken during refactoring.)
 
-##Dependencies
+## Dependencies
 
 JavaCADE depends on some external packages. It expects to find their jar files in the subdirectory `lib/` (if compiling with `ant`) or elsewhere in the classpath.
 
@@ -84,34 +84,17 @@ To summarize, here's what my `lib/` contains:
 * `localOutlierFactor.jar`
 * `RCaller-4.0.2-jar-with-dependencies.jar`
 
-##Building
-
-A compiled .jar file will (eventually) be provided, so there will be no need to compile & build the project unless you want to modify the source code. 
-
-The project can be built from the command line or in an IDE.
-
-To build at the command line, simply run `ant` from this directory. It will use the file `build.xml`.
-
-Notes for command line:
-
-* The project can be built (`javac`) using Java (JDK) versions 11 or higher. It is configured to compile into bytecode version 11. (This means it can be run with `java` in that version or higher.) 
-To make `ant` use a specific JDK, set it in the environment variable JAVA_HOME.
-* Requires [ant](http://ant.apache.org/) version ≥1.8.0.  
-* Unit tests are not (currently) included in git. If/when they are added:
-  * The build file excludes unit tests by default. To include them, run this:
-`ant -Dskip.tests=false`. 
-  * Building and running the tests requires an additional dependency, the Junit 4 library. (My IDE resolved this by placing two files in the lib directory: `junit-4.13.1.jar` and `hamcrest-core-1.3.jar`).
 
 
-##Running
+## Running
 
-###Using the compiled files.
+The basic call, after setting up the dependencies, should look like this:
 
-Run it using the files compiled to `out/production`:
+`java -classpath CADE.jar:lib/RCaller-4.0.2-jar-with-dependencies.jar:lib/weka-3-8-5/arpack_combined.jar:lib/weka-3-8-5/mtj.jar:lib/weka-3-8-5/core.jar:lib/weka-3-8-5/weka.jar -Xmx1g cade.PseudoAnomalyGo <args-to-the-program>`
 
-`java -classpath out/production/CADE:lib/RCaller-4.0.2-jar-with-dependencies.jar:lib/weka-3-8-5/arpack_combined.jar:lib/weka-3-8-5/mtj.jar:lib/weka-3-8-5/core.jar:lib/weka-3-8-5/weka.jar -Xmx1g cade.PseudoAnomalyGo <args-to-the-program>`
 * `java` (must be version 11 or higher).
-* The classpath includes the location of the compiled javaCade project, plus the 5 dependency jar files.
+* The classpath includes `CADE.jar` plus the 5 dependency jar files.
+* If you've compiled the project locally, then replace `CADE.jar` in the classpath with `out/production` (the location of the compiled files) or with `out/artifacts/CADE_jar/CADE.jar` (the location of the newly produced .jar file).  
 * `cade.PseudoAnomalyGo` is the main class to call.
 * `-Xmx1g` increases the memory.
 * `<args-to-the-program>` will look something like, for example:
@@ -119,14 +102,24 @@ Run it using the files compiled to `out/production`:
   Run the program without arguments to print the documentation describing them.
 
 
-###Using the jar file.
 
-Or use CADE.jar. The following syntax works if CADE.jar, plus all 
-the Weka and RCaller .jar files, is found in the directory `out/artifacts/CADE_jar/`.
+## Building
 
-`java -jar out/artifacts/CADE_jar/CADE.jar <args-to-the-program>` 
+A compiled .jar file is provided, so there's no need to compile & build the project unless you want to modify the source code.
 
-Or equivalently,
+The project can be built from the command line or in an IDE.
 
-`java -cp "out/artifacts/CADE_jar/*" cade.PseudoAnomalyGo <args-to-the-program>` 
+To build at the command line, simply run `ant` from this directory. It will use the file `build.xml`.
 
+When `ant` has run successfully, compiled files will be found under `out/production/`,
+and a copy of `CADE.jar` (which bundles up that directory) will be found in `out/artifacts/CADE_jar/`.
+
+Notes for command line:
+
+* The project can be built (`javac`) using Java (JDK) versions 11 or higher. It is configured to compile into bytecode version 11. (This means it can be run with `java` in that version or higher.)
+  To make `ant` use a specific JDK, set it in the environment variable JAVA_HOME.
+* Requires [ant](http://ant.apache.org/) version ≥1.8.0.
+* Unit tests are not (currently) included in git. If/when they are added:
+    * The build file excludes unit tests by default. To include them, run this:
+      `ant -Dskip.tests=false`.
+    * Building and running the tests requires an additional dependency, the Junit 4 library. (My IDE resolved this by placing two files in the lib directory: `junit-4.13.1.jar` and `hamcrest-core-1.3.jar`).

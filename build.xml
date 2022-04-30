@@ -207,10 +207,7 @@
   
   <target name="artifact.cade:jar" depends="init.artifacts, compile.module.cade" description="Build &#39;CADE:jar&#39; artifact">
     <mkdir dir="${artifact.output.cade:jar}"/>
-    <jar destfile="${temp.jar.path.CADE.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
-      <zipfileset file="${basedir}/src/META-INF/MANIFEST.MF" prefix="META-INF"/>
-      <zipfileset dir="${cade.output.dir}"/>
-    </jar>
+    <jar manifest="${basedir}/src/META-INF/MANIFEST.MF" destfile="${temp.jar.path.CADE.jar}" basedir="${cade.output.dir}" duplicate="preserve" filesetmanifest="mergewithoutmain" />
     <copy file="${temp.jar.path.CADE.jar}" tofile="${artifact.output.cade:jar}/CADE.jar"/>
   </target>
   
