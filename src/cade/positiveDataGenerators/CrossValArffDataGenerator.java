@@ -15,6 +15,7 @@ public class CrossValArffDataGenerator extends LabeledArffDataGenerator {
     Instances trainingSampleNegatives;      // complement to trainingSample field inherited from DatafileDataGenerator,
                                             // only ever used to run the classifier baseline
 
+    int numInstancesUsedInDataSet; //number of data instances used from file = min(allData.numInstances, maxNumInstances wanted)
     boolean useAllNegatives;//if true, numInstancesUsedInDataSet limits only the number of positives. use all negatives (for testing)
 
     boolean useAllTestData; // train as usual, but make predictions on full data file [never used]

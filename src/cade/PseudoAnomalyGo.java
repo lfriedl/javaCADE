@@ -67,9 +67,9 @@ public class PseudoAnomalyGo {
                 "where:\n" +
                 "       input and output files are in formats Weka can recognize (e.g., csv or arff)\n" +
                 "       classifierType is a 0-based index into this list: "  + Arrays.toString(Parameters.ClassifierType.values()) + "\n" +
-                "           classifierTypes 0 (RF) and 1 (KNN) tend to perform well,\n" +
+                "           classifierTypes 0 (RF) and 1 (KNN) tend to perform well\n" +
                 "       pseudoAnomalyType is a 0-based index into this list: " + Arrays.toString(Parameters.PseudoNegGenerationType.values()) + "\n" +
-                "           pseudoAnomalyTypes 0 (UNIF - fast), 1 & 2 (indep KDEs & Bayes Net - slow) tend to perform well,\n" +
+                "           pseudoAnomalyTypes 0 (UNIF - fast), 1 (indep KDEs) and 2 (Bayes Net - slow) tend to perform well\n" +
                 "       numTrainingInstances is number we'll sample from inputFile to build model (-1 to use all)\n" +
                 "           (note: regardless of numTrainingInstances, all instances will be scanned to get data ranges)\n" +
                 "       IDattrs is a comma-separated list of column(s) for the model to ignore (e.g., row identifiers)\n" +

@@ -13,7 +13,6 @@ import weka.core.Instances;
 
 abstract public class LabeledArffDataGenerator extends DatafileDataGenerator {
 
-    int numInstancesUsedInDataSet; //number of data instances used from file = min(allData.numInstances, maxNumInstances wanted)
     boolean normalize;
     int classAttr;
     double avgAbsCorr = 0;
